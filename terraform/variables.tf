@@ -86,7 +86,7 @@ variable "proxy_allowed_ipv6" {
 variable "enable_nodebalancer" {
   description = "Create a regional TCP NodeBalancer in front of all proxy instances."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "nodebalancer_algorithm" {

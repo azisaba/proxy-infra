@@ -37,7 +37,7 @@ simpleproxy_port: 25565
 
 simpleproxy_config_repo: git@github.com:azisaba/relay-server-config.git
 simpleproxy_config_branch: generated
-simpleproxy_config_commit: "0e18780d28f5631e88a0addad98fcba6eedbbde9"
+simpleproxy_config_commit: "d0498eb46dde1cbbfb4b80d252554d58b31ade05"
 simpleproxy_config_source: ip-deny-list/generated/simpleproxy-config.yml
 simpleproxy_config_path: /opt/simpleproxy/config.yml
 simpleproxy_config_checkout_dir: >-

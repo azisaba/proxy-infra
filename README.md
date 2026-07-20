@@ -46,7 +46,6 @@ Variables:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID |
 | `R2_BUCKET_NAME` | `terraform-state` |
 | `LINODE_REGION` | `ap-northeast` |
-| `INSTANCE_COUNT` | `10` |
 | `PROXY_PORT` | `25565` |
 | `SSH_ALLOWED_IPV4` | `["203.0.113.10/32"]` |
 | `SSH_ALLOWED_IPV6` | `[]` |
@@ -58,6 +57,9 @@ Variables:
 
 Secretsは両Environmentへ登録します。PRのplanで書き込み権限を渡したくない場合は、
 `terraform-plan`ではLinodeとR2にread-onlyの別Tokenを使ってください。
+
+インスタンス台数はGitHub Variableではなく、`terraform/variables.tf`の
+`instance_count`にある`default`で管理します。台数変更はコード変更としてPull Requestに含めます。
 
 ## Terraformの運用
 

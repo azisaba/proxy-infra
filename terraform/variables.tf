@@ -6,7 +6,7 @@ variable "region" {
 variable "instance_count" {
   description = "Number of SimpleProxy instances."
   type        = number
-  default     = 10
+  default     = 3
 
   validation {
     condition     = var.instance_count >= 1 && var.instance_count <= 100 && floor(var.instance_count) == var.instance_count
@@ -23,7 +23,7 @@ variable "instance_type" {
 variable "image" {
   description = "Image used for every proxy instance."
   type        = string
-  default     = "linode/debian12"
+  default     = "linode/ubuntu26.04"
 }
 
 variable "name_prefix" {

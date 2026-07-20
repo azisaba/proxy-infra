@@ -158,6 +158,15 @@ self-hosted runnerの実行ユーザーには、次の両方へのSSHアクセ�
 - `git@github.com:azisaba/relay-server-config.git`の読み取り
 - SimpleProxyノードへのroot SSH（または`ansible_user`で指定した管理ユーザー）
 
+SimpleProxyノードへの接続には、runner実行ユーザーの次の秘密鍵を使用します。
+
+```text
+~/.ssh/simpleproxy_ed25519
+```
+
+所有者をrunner実行ユーザー、パーミッションを`0600`にしてください。この指定は
+`deploy-config.yml`だけでなく、`site.yml`やreloadなど全SimpleProxy向けPlaybookで共通です。
+
 初回の設定デプロイ前に一度`ansible-playbook site.yml`を実行し、各ノードへ
 `simpleproxy`ユーザー、JAR、systemd unitを作成してください。
 

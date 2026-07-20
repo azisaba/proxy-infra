@@ -17,7 +17,7 @@ resource "linode_firewall" "proxy" {
     label    = "allow-simpleproxy"
     action   = "ACCEPT"
     protocol = "TCP"
-    ports    = tostring(var.proxy_port)
+    ports    = join(",", local.nodebalancer_ports)
     ipv4     = length(local.effective_proxy_allowed_ipv4) > 0 ? local.effective_proxy_allowed_ipv4 : null
     ipv6     = length(local.effective_proxy_allowed_ipv6) > 0 ? local.effective_proxy_allowed_ipv6 : null
   }
@@ -27,6 +27,7 @@ resource "linode_firewall" "proxy" {
   depends_on = [
     linode_firewall.nodebalancer,
     linode_nodebalancer_node.proxy,
+    linode_nodebalancer_node.proxy_additional,
   ]
 
   lifecycle {
@@ -49,7 +50,7 @@ resource "linode_firewall" "nodebalancer" {
     label    = "allow-simpleproxy"
     action   = "ACCEPT"
     protocol = "TCP"
-    ports    = tostring(var.proxy_port)
+    ports    = join(",", local.nodebalancer_ports)
     ipv4     = length(var.proxy_allowed_ipv4) > 0 ? var.proxy_allowed_ipv4 : null
     ipv6     = length(var.proxy_allowed_ipv6) > 0 ? var.proxy_allowed_ipv6 : null
   }

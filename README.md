@@ -103,7 +103,9 @@ proxy_allowed_ipv6  = ["::/0"]
 ```
 
 NodeBalancerを有効にすると、NodeBalancer専用Cloud Firewallを自動作成して上記CIDRから
-`proxy_port`への通信だけを許可します。同時に各SimpleProxyのCloud Firewallは
+`proxy_port`（既定値25565）、25566、25567への通信だけを許可します。各Configurationは
+公開側と同じポート番号（25565→25565、25566→25566、25567→25567）でbackendへ
+転送します。同時に各SimpleProxyのCloud Firewallは、これら3ポートについて
 `192.168.255.0/24`からのprivate IPv4通信だけを許可するルールへ切り替わるため、
 各インスタンスの公開IPを使ったNodeBalancerの迂回はできなくなります。
 

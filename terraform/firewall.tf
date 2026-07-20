@@ -9,8 +9,8 @@ resource "linode_firewall" "proxy" {
     action   = "ACCEPT"
     protocol = "TCP"
     ports    = "22"
-    ipv4     = var.ssh_allowed_ipv4
-    ipv6     = var.ssh_allowed_ipv6
+    ipv4     = length(var.ssh_allowed_ipv4) > 0 ? var.ssh_allowed_ipv4 : null
+    ipv6     = length(var.ssh_allowed_ipv6) > 0 ? var.ssh_allowed_ipv6 : null
   }
 
   inbound {
@@ -18,8 +18,8 @@ resource "linode_firewall" "proxy" {
     action   = "ACCEPT"
     protocol = "TCP"
     ports    = tostring(var.proxy_port)
-    ipv4     = var.proxy_allowed_ipv4
-    ipv6     = var.proxy_allowed_ipv6
+    ipv4     = length(var.proxy_allowed_ipv4) > 0 ? var.proxy_allowed_ipv4 : null
+    ipv6     = length(var.proxy_allowed_ipv6) > 0 ? var.proxy_allowed_ipv6 : null
   }
 
   linodes = [for instance in linode_instance.proxy : instance.id]

@@ -135,9 +135,9 @@ ansible-playbook site.yml
 ```
 
 `site.yml`はCloudflare One Clientを導入し、上記3つの環境変数を使って各Linodeを
-Cloudflare Meshへ登録します。JARのURLまたはchecksumを含むSimpleProxyロールの変更が
-mainへpushされると、`Configure SimpleProxy nodes` workflowが2台ずつ自動適用します。
-手動で構成だけを再適用する場合も、同じworkflowを実行してください。
+Cloudflare Meshへ登録します。JARのURLまたはchecksumを変更した場合は、Actions画面から
+`Configure SimpleProxy nodes` workflowを手動実行してください。各ノードには2台ずつ
+適用されます。
 
 バックエンドはCIDR routeではなく、次のMesh IPへ直接接続します。
 

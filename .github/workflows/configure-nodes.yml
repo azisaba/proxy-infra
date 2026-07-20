@@ -1,14 +1,6 @@
 name: Configure SimpleProxy nodes
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "ansible/group_vars/simpleproxy.yml"
-      - "ansible/roles/simpleproxy/**"
-      - "ansible/site.yml"
-      - ".github/workflows/configure-nodes.yml"
   workflow_dispatch:
 
 permissions:

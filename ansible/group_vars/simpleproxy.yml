@@ -14,3 +14,11 @@ simpleproxy_jar_checksum: sha256:01cb251bcb4595f80fbf493c6a7b7e7b57b030e5f05a870
 simpleproxy_java_package: openjdk-17-jre-headless
 simpleproxy_java_opts: "-Xms64m -Xmx512m"
 simpleproxy_port: 25565
+
+simpleproxy_config_repo: git@github.com:azisaba/relay-server-config.git
+simpleproxy_config_branch: generated
+simpleproxy_config_commit: "3db74db5587e7738ffe80acaa7dcae7c04451a30"
+simpleproxy_config_source: ip-deny-list/generated/simpleproxy-config.yml
+simpleproxy_config_path: /opt/simpleproxy/config.yml
+simpleproxy_config_checkout_dir: >-
+  {{ lookup('ansible.builtin.env', 'RUNNER_TEMP') | default('/tmp', true) }}/relay-server-config

@@ -1,7 +1,7 @@
 region         = "ap-northeast"
 instance_count = 10
 instance_type  = "g6-nanode-1"
-image          = "linode/debian12"
+image          = "linode/ubuntu26.04"
 name_prefix    = "simpleproxy"
 
 # Supply the real value through TF_VAR_ssh_public_key in CI.
@@ -18,4 +18,3 @@ proxy_allowed_ipv6 = ["::/0"]
 enable_nodebalancer        = false
 nodebalancer_algorithm     = "leastconn"
 nodebalancer_proxy_protocol = "none"
-

@@ -8,9 +8,9 @@
 terraform.rc
 
 .ansible/
+.venv/
 *.retry
 
 .idea/
 .vscode/
 .DS_Store
-

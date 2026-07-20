@@ -1,0 +1,48 @@
+name: Deploy SimpleProxy config
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ansible/group_vars/simpleproxy.yml"
+      - "ansible/deploy-config.yml"
+      - ".github/workflows/deploy-config.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: simpleproxy-config-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+    environment: production
+    defaults:
+      run:
+        working-directory: ansible
+    env:
+      LINODE_ACCESS_TOKEN: ${{ secrets.LINODE_TOKEN }}
+    steps:
+      - name: Check out proxy infrastructure
+        uses: actions/checkout@v5
+
+      - name: Create the Ansible virtual environment
+        run: python3 -m venv .venv
+
+      - name: Install Python dependencies
+        run: .venv/bin/pip install -r requirements.txt
+
+      - name: Install Ansible collections
+        run: .venv/bin/ansible-galaxy collection install -r requirements.yml
+
+      - name: Show the selected configuration commit
+        run: grep -n '^simpleproxy_config_commit:' group_vars/simpleproxy.yml
+
+      - name: Deploy the pinned configuration
+        run: .venv/bin/ansible-playbook deploy-config.yml

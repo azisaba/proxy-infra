@@ -1,0 +1,92 @@
+---
+- name: Prepare the pinned SimpleProxy configuration
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files:
+    - group_vars/simpleproxy.yml
+  tasks:
+    - name: Validate the pinned commit SHA
+      ansible.builtin.assert:
+        that:
+          - simpleproxy_config_commit is match('^[0-9a-f]{40}$')
+        fail_msg: "simpleproxy_config_commit must be a full lowercase 40-character commit SHA."
+
+    - name: Check out the pinned configuration commit
+      ansible.builtin.git:
+        repo: "{{ simpleproxy_config_repo }}"
+        dest: "{{ simpleproxy_config_checkout_dir }}"
+        version: "{{ simpleproxy_config_commit }}"
+        refspec: "+refs/heads/{{ simpleproxy_config_branch }}:refs/remotes/origin/{{ simpleproxy_config_branch }}"
+        force: true
+        update: true
+        accept_newhostkey: true
+
+    - name: Verify that the commit belongs to the generated branch
+      ansible.builtin.command:
+        argv:
+          - git
+          - -C
+          - "{{ simpleproxy_config_checkout_dir }}"
+          - merge-base
+          - --is-ancestor
+          - "{{ simpleproxy_config_commit }}"
+          - "refs/remotes/origin/{{ simpleproxy_config_branch }}"
+      changed_when: false
+
+    - name: Check the generated configuration file
+      ansible.builtin.stat:
+        path: "{{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}"
+      register: generated_config
+
+    - name: Require a regular generated configuration file
+      ansible.builtin.assert:
+        that:
+          - generated_config.stat.exists
+          - generated_config.stat.isreg
+        fail_msg: >-
+          The generated configuration was not found at
+          {{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}.
+
+    - name: Validate the generated configuration as YAML
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - -c
+          - >-
+            import pathlib, sys, yaml;
+            yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))
+          - "{{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}"
+      changed_when: false
+
+- name: Deploy the pinned SimpleProxy configuration
+  hosts: simpleproxy
+  become: true
+  gather_facts: false
+  serial: 2
+  max_fail_percentage: 0
+  tasks:
+    - name: Copy the generated configuration atomically
+      ansible.builtin.copy:
+        src: "{{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}"
+        dest: "{{ simpleproxy_config_path }}"
+        owner: "{{ simpleproxy_user }}"
+        group: "{{ simpleproxy_group }}"
+        mode: "0640"
+        backup: true
+      notify: Deploy SimpleProxy configuration
+
+  handlers:
+    - name: Gracefully reload SimpleProxy
+      ansible.builtin.systemd_service:
+        name: simpleproxy
+        state: reloaded
+      listen: Deploy SimpleProxy configuration
+
+    - name: Wait for the SimpleProxy listener
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ simpleproxy_port }}"
+        timeout: 30
+      listen: Deploy SimpleProxy configuration

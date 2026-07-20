@@ -1,6 +1,6 @@
 # SimpleProxy infrastructure
 
-Linode上のSimpleProxyノードを、Terraform、Ansible、systemdで一括管理します。
+Linode上のUbuntu 26.04 LTS SimpleProxyノードを、Terraform、Ansible、systemdで一括管理します。
 
 ## 管理範囲
 
@@ -12,15 +12,14 @@ Linode上のSimpleProxyノードを、Terraform、Ansible、systemdで一括管�
   - Cloudflare R2上のremote stateとlock file
 - Ansible
   - Linodeタグを使ったdynamic inventory
-  - Java、固定バージョンのSimpleProxy JAR、実行ユーザー、systemd unit
+  - Ubuntu 26.04上のJava、固定バージョンのSimpleProxy JAR、実行ユーザー、systemd unit
+  - `relay-server-config`の固定コミットから`config.yml`を配布
   - 管理ユーザーとSSH公開鍵
   - graceful reload、2台ずつのrolling restart、OS更新
-- 既存のGitHub同期処理
-  - `config.yml`の配布
 
-Ansibleは既存の設定同期処理を上書きしません。既定ではSimpleProxy 1.1.6の公式JARを
-SHA-256検証付きで`/opt/simpleproxy/SimpleProxy.jar`へ配置します。更新時は
-`group_vars/simpleproxy.yml`のURLとchecksumを必ず一緒に変更してください。
+AnsibleはSimpleProxy 1.1.6の公式JARをSHA-256検証付きで
+`/opt/simpleproxy/SimpleProxy.jar`へ配置します。更新時は`group_vars/simpleproxy.yml`の
+URLとchecksumを必ず一緒に変更してください。
 
 ## 事前準備
 
@@ -98,8 +97,8 @@ proxy_allowed_ipv4  = ["192.168.128.0/17"]
 proxy_allowed_ipv6  = []
 ```
 
-`nodebalancer_proxy_protocol`を`v1`または`v2`にする場合は、既存同期処理が配る
-SimpleProxyの`config.yml`でもProxy Protocolを有効にしてください。
+`nodebalancer_proxy_protocol`を`v1`または`v2`にする場合は、`relay-server-config`側の
+SimpleProxy設定でもProxy Protocolを有効にしてください。
 
 ## Ansibleの運用
 
@@ -136,6 +135,36 @@ ansible-playbook update-os.yml
 ansible simpleproxy -b -m ansible.builtin.systemd_service \
   -a "name=simpleproxy state=started"
 ```
+
+## SimpleProxy設定のデプロイ
+
+配布する設定のコミットは`ansible/group_vars/simpleproxy.yml`で固定します。
+
+```yaml
+simpleproxy_config_commit: "3db74db5587e7738ffe80acaa7dcae7c04451a30"
+```
+
+このSHAを変更するPull Requestがmainへマージされると、`Deploy SimpleProxy config`
+workflowがself-hosted Linux runner上で起動します。runnerは次を実行します。
+
+1. `relay-server-config`を取得して指定SHAをcheckoutする。
+2. SHAが`generated`ブランチに含まれることと、生成ファイルが有効なYAMLであることを確認する。
+3. `ip-deny-list/generated/simpleproxy-config.yml`を全ノードの
+   `/opt/simpleproxy/config.yml`へ2台ずつ原子的に転送する。
+4. 変更されたノードだけSIGHUPでreloadし、25565番listenerを確認する。
+
+self-hosted runnerの実行ユーザーには、次の両方へのSSHアクセスが必要です。
+
+- `git@github.com:azisaba/relay-server-config.git`の読み取り
+- SimpleProxyノードへのroot SSH（または`ansible_user`で指定した管理ユーザー）
+
+初回の設定デプロイ前に一度`ansible-playbook site.yml`を実行し、各ノードへ
+`simpleproxy`ユーザー、JAR、systemd unitを作成してください。
+
+手動で再実行する場合はActions画面の`Deploy SimpleProxy config`から
+`Run workflow`を選びます。ロールバックは`simpleproxy_config_commit`を以前のSHAへ戻す
+Pull Requestをマージします。`production` Environmentにrequired reviewersがある場合は、
+自動起動後に承認されるまでデプロイは待機します。
 
 `update-os.yml`は2台ずつ更新し、必要な場合は再起動してからlistenerを確認します。
 

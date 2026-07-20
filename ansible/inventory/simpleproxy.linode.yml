@@ -1,0 +1,10 @@
+---
+plugin: community.general.linode
+tags:
+  - simpleproxy
+strict: true
+compose:
+  ansible_host: ipv4[0]
+groups:
+  simpleproxy: "'simpleproxy' in (tags | list)"
+

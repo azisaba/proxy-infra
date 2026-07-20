@@ -1,0 +1,7 @@
+---
+- name: Configure SimpleProxy nodes
+  hosts: simpleproxy
+  become: true
+  gather_facts: true
+  roles:
+    - role: simpleproxy

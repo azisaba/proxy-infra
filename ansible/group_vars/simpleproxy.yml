@@ -1,0 +1,16 @@
+---
+ansible_user: root
+
+simpleproxy_admin_user: proxyadmin
+simpleproxy_admin_authorized_keys: []
+simpleproxy_admin_passwordless_sudo: true
+
+simpleproxy_user: simpleproxy
+simpleproxy_group: simpleproxy
+simpleproxy_home: /opt/simpleproxy
+simpleproxy_jar_path: /opt/simpleproxy/SimpleProxy.jar
+simpleproxy_jar_url: https://github.com/AzisabaNetwork/SimpleProxy/releases/download/1.1.6/SimpleProxy.jar
+simpleproxy_jar_checksum: sha256:01cb251bcb4595f80fbf493c6a7b7e7b57b030e5f05a8704f2c80264c21d111b
+simpleproxy_java_package: openjdk-17-jre-headless
+simpleproxy_java_opts: "-Xms64m -Xmx512m"
+simpleproxy_port: 25565

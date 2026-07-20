@@ -1,0 +1,28 @@
+[Unit]
+Description=SimpleProxy TCP reverse proxy
+Documentation=https://github.com/AzisabaNetwork/SimpleProxy
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists={{ simpleproxy_jar_path }}
+
+[Service]
+Type=simple
+User={{ simpleproxy_user }}
+Group={{ simpleproxy_group }}
+WorkingDirectory={{ simpleproxy_home }}
+ExecStart=/usr/bin/java {{ simpleproxy_java_opts }} -jar {{ simpleproxy_jar_path }}
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3
+SuccessExitStatus=130 143
+TimeoutStopSec=30
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ simpleproxy_home }}
+
+[Install]
+WantedBy=multi-user.target
+

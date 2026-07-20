@@ -1,0 +1,18 @@
+---
+- name: Gracefully reload SimpleProxy configuration
+  hosts: simpleproxy
+  become: true
+  gather_facts: false
+  serial: 2
+  max_fail_percentage: 0
+  tasks:
+    - name: Send SIGHUP through systemd
+      ansible.builtin.systemd_service:
+        name: simpleproxy
+        state: reloaded
+
+    - name: Wait for the local listener
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ simpleproxy_port }}"
+        timeout: 30

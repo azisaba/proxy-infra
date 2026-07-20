@@ -1,0 +1,116 @@
+---
+- name: Validate supported operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family == "Debian"
+    fail_msg: "This role currently supports Debian-family hosts only."
+
+- name: Install Java and base packages
+  ansible.builtin.apt:
+    name:
+      - "{{ simpleproxy_java_package }}"
+      - ca-certificates
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the administration user when keys are configured
+  ansible.builtin.user:
+    name: "{{ simpleproxy_admin_user }}"
+    shell: /bin/bash
+    create_home: true
+    groups: sudo
+    append: true
+  when: simpleproxy_admin_authorized_keys | length > 0
+
+- name: Install administration SSH keys
+  ansible.posix.authorized_key:
+    user: "{{ simpleproxy_admin_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ simpleproxy_admin_authorized_keys }}"
+  no_log: true
+
+- name: Configure passwordless sudo for the administration user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ simpleproxy_admin_user }}"
+    content: "{{ simpleproxy_admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"
+  when:
+    - simpleproxy_admin_authorized_keys | length > 0
+    - simpleproxy_admin_passwordless_sudo | bool
+
+- name: Create the SimpleProxy group
+  ansible.builtin.group:
+    name: "{{ simpleproxy_group }}"
+    system: true
+
+- name: Create the SimpleProxy service user
+  ansible.builtin.user:
+    name: "{{ simpleproxy_user }}"
+    group: "{{ simpleproxy_group }}"
+    home: "{{ simpleproxy_home }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Create the SimpleProxy working directory
+  ansible.builtin.file:
+    path: "{{ simpleproxy_home }}"
+    state: directory
+    owner: "{{ simpleproxy_user }}"
+    group: "{{ simpleproxy_group }}"
+    mode: "0750"
+
+- name: Download a pinned SimpleProxy JAR when a URL is configured
+  ansible.builtin.get_url:
+    url: "{{ simpleproxy_jar_url }}"
+    dest: "{{ simpleproxy_jar_path }}"
+    checksum: "{{ simpleproxy_jar_checksum if simpleproxy_jar_checksum | length > 0 else omit }}"
+    owner: "{{ simpleproxy_user }}"
+    group: "{{ simpleproxy_group }}"
+    mode: "0640"
+  when: simpleproxy_jar_url | length > 0
+  notify: Restart SimpleProxy
+
+- name: Check that the SimpleProxy JAR exists
+  ansible.builtin.stat:
+    path: "{{ simpleproxy_jar_path }}"
+  register: simpleproxy_jar
+
+- name: Require the existing sync process or jar_url to provide the JAR
+  ansible.builtin.assert:
+    that:
+      - simpleproxy_jar.stat.exists
+      - simpleproxy_jar.stat.isreg
+    fail_msg: >-
+      {{ simpleproxy_jar_path }} is missing. Let the existing GitHub sync process
+      install it first, or set simpleproxy_jar_url and simpleproxy_jar_checksum.
+
+- name: Set ownership and permissions on the SimpleProxy JAR
+  ansible.builtin.file:
+    path: "{{ simpleproxy_jar_path }}"
+    state: file
+    owner: "{{ simpleproxy_user }}"
+    group: "{{ simpleproxy_group }}"
+    mode: "0640"
+
+- name: Install the systemd unit
+  ansible.builtin.template:
+    src: simpleproxy.service.j2
+    dest: /etc/systemd/system/simpleproxy.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart SimpleProxy
+
+- name: Enable and start SimpleProxy
+  ansible.builtin.systemd_service:
+    name: simpleproxy
+    enabled: true
+    state: started

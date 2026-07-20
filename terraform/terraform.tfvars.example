@@ -1,0 +1,21 @@
+region         = "ap-northeast"
+instance_count = 10
+instance_type  = "g6-nanode-1"
+image          = "linode/debian12"
+name_prefix    = "simpleproxy"
+
+# Supply the real value through TF_VAR_ssh_public_key in CI.
+ssh_public_key = "ssh-ed25519 AAAA_REPLACE_ME admin@example"
+
+# Restrict this to the management host or VPN egress address.
+ssh_allowed_ipv4 = ["203.0.113.10/32"]
+ssh_allowed_ipv6 = []
+
+proxy_port         = 25565
+proxy_allowed_ipv4 = ["0.0.0.0/0"]
+proxy_allowed_ipv6 = ["::/0"]
+
+enable_nodebalancer        = false
+nodebalancer_algorithm     = "leastconn"
+nodebalancer_proxy_protocol = "none"
+

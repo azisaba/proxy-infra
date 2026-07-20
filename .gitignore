@@ -1,0 +1,16 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+.terraformrc
+terraform.rc
+
+.ansible/
+*.retry
+
+.idea/
+.vscode/
+.DS_Store
+

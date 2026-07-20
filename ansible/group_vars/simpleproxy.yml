@@ -29,7 +29,7 @@ simpleproxy_user: simpleproxy
 simpleproxy_group: simpleproxy
 simpleproxy_home: /opt/simpleproxy
 simpleproxy_jar_path: /opt/simpleproxy/SimpleProxy.jar
-simpleproxy_jar_url: https://repo.azisaba.net/repository/maven-public/net/azisaba/simpleproxy/proxy/2.1.0/proxy-2.1.0-all.jar
+simpleproxy_jar_url: https://repo.azisaba.net/repository/maven-public/net/azisaba/simpleproxy/proxy/2.1.1/proxy-2.1.1-all.jar
 simpleproxy_jar_checksum: sha256:7828546a7a4f6cb9a4183c755cf6173ba4b388ab301167cb681438e520f796a9
 simpleproxy_java_package: openjdk-17-jre-headless
 simpleproxy_java_opts: "-Xms64m -Xmx512m"

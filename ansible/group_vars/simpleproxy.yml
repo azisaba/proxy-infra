@@ -3,6 +3,24 @@ ansible_user: root
 ansible_ssh_private_key_file: >-
   {{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/simpleproxy_ed25519
 
+cloudflare_zero_trust_organization: >-
+  {{ lookup('ansible.builtin.env', 'CLOUDFLARE_ZERO_TRUST_ORGANIZATION') }}
+cloudflare_access_client_id: >-
+  {{ lookup('ansible.builtin.env', 'CLOUDFLARE_ACCESS_CLIENT_ID') }}
+cloudflare_access_client_secret: >-
+  {{ lookup('ansible.builtin.env', 'CLOUDFLARE_ACCESS_CLIENT_SECRET') }}
+cloudflare_mesh_backend_checks:
+  - host: 172.31.240.1
+    port: 30500
+  - host: 172.31.240.4
+    port: 30500
+simpleproxy_retired_backend_addresses:
+  - 10.0.0.108
+  - 10.0.0.110
+simpleproxy_required_backend_addresses:
+  - 172.31.240.1
+  - 172.31.240.4
+
 simpleproxy_admin_user: proxyadmin
 simpleproxy_admin_authorized_keys: []
 simpleproxy_admin_passwordless_sudo: true
@@ -11,15 +29,15 @@ simpleproxy_user: simpleproxy
 simpleproxy_group: simpleproxy
 simpleproxy_home: /opt/simpleproxy
 simpleproxy_jar_path: /opt/simpleproxy/SimpleProxy.jar
-simpleproxy_jar_url: https://github.com/AzisabaNetwork/SimpleProxy/releases/download/1.1.6/SimpleProxy.jar
-simpleproxy_jar_checksum: sha256:01cb251bcb4595f80fbf493c6a7b7e7b57b030e5f05a8704f2c80264c21d111b
+simpleproxy_jar_url: https://repo.azisaba.net/repository/maven-public/net/azisaba/simpleproxy/proxy/2.1.0/proxy-2.1.0-all.jar
+simpleproxy_jar_checksum: sha256:7828546a7a4f6cb9a4183c755cf6173ba4b388ab301167cb681438e520f796a9
 simpleproxy_java_package: openjdk-17-jre-headless
 simpleproxy_java_opts: "-Xms64m -Xmx512m"
 simpleproxy_port: 25565
 
 simpleproxy_config_repo: git@github.com:azisaba/relay-server-config.git
 simpleproxy_config_branch: generated
-simpleproxy_config_commit: "3db74db5587e7738ffe80acaa7dcae7c04451a30"
+simpleproxy_config_commit: "0e18780d28f5631e88a0addad98fcba6eedbbde9"
 simpleproxy_config_source: ip-deny-list/generated/simpleproxy-config.yml
 simpleproxy_config_path: /opt/simpleproxy/config.yml
 simpleproxy_config_checkout_dir: >-

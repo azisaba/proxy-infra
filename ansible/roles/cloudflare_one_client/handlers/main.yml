@@ -1,0 +1,6 @@
+---
+- name: Restart Cloudflare One Client
+  ansible.builtin.systemd_service:
+    name: warp-svc
+    enabled: true
+    state: restarted

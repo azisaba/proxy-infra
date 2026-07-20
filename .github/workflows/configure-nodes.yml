@@ -1,25 +1,17 @@
-name: Deploy SimpleProxy config
+name: Configure SimpleProxy nodes
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "ansible/group_vars/simpleproxy.yml"
-      - "ansible/deploy-config.yml"
-      - "ansible/roles/cloudflare_one_client/**"
-      - ".github/workflows/deploy-config.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: simpleproxy-config-production
+  group: simpleproxy-nodes-production
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  configure:
     runs-on:
       - self-hosted
       - linux
@@ -45,11 +37,5 @@ jobs:
       - name: Install Ansible collections
         run: .venv/bin/ansible-galaxy collection install -r requirements.yml
 
-      - name: Show the selected configuration commit
-        run: grep -n '^simpleproxy_config_commit:' group_vars/simpleproxy.yml
-
-      - name: Configure nodes and Cloudflare Mesh
+      - name: Configure all SimpleProxy nodes
         run: .venv/bin/ansible-playbook site.yml
-
-      - name: Deploy the pinned configuration
-        run: .venv/bin/ansible-playbook deploy-config.yml

@@ -60,12 +60,55 @@
           - "{{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}"
       changed_when: false
 
+    - name: Require Mesh backend addresses in the generated configuration
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - -c
+          - >-
+            import pathlib, sys;
+            text = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8');
+            retired = sys.argv[2].split(',');
+            required = sys.argv[3].split(',');
+            found_retired = [value for value in retired if value in text];
+            missing_required = [value for value in required if value not in text];
+            assert not found_retired, f'Retired backend addresses remain: {found_retired}';
+            assert not missing_required, f'Required Mesh addresses are missing: {missing_required}'
+          - "{{ simpleproxy_config_checkout_dir }}/{{ simpleproxy_config_source }}"
+          - "{{ simpleproxy_retired_backend_addresses | join(',') }}"
+          - "{{ simpleproxy_required_backend_addresses | join(',') }}"
+      changed_when: false
+
 - name: Deploy the pinned SimpleProxy configuration
   hosts: simpleproxy
   become: true
   gather_facts: false
   serial: 2
   max_fail_percentage: 0
+  pre_tasks:
+    - name: Require an active Cloudflare Mesh connection
+      ansible.builtin.command:
+        argv:
+          - warp-cli
+          - status
+      register: cloudflare_mesh_status
+      changed_when: false
+      failed_when: >-
+        cloudflare_mesh_status.rc != 0 or
+        cloudflare_mesh_status.stdout is not
+        search('(?im)^Status update:\\s*Connected\\s*$')
+
+    - name: Verify the Mesh backend listeners
+      ansible.builtin.wait_for:
+        host: "{{ item.host }}"
+        port: "{{ item.port }}"
+        connect_timeout: 5
+        timeout: 15
+        state: started
+      loop: "{{ cloudflare_mesh_backend_checks }}"
+      loop_control:
+        label: "{{ item.host }}:{{ item.port }}"
+
   tasks:
     - name: Copy the generated configuration atomically
       ansible.builtin.copy:

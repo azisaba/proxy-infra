@@ -13,6 +13,7 @@ Linode上のUbuntu 26.04 LTS SimpleProxyノードを、Terraform、Ansible、sys
 - Ansible
   - Linodeタグを使ったdynamic inventory
   - Ubuntu 26.04上のJava、固定バージョンのSimpleProxy JAR、実行ユーザー、systemd unit
+  - Cloudflare One Clientの導入とService TokenによるCloudflare Meshへの自動登録
   - `relay-server-config`の固定コミットから`config.yml`を配布
   - 管理ユーザーとSSH公開鍵
   - graceful reload、2台ずつのrolling restart、OS更新
@@ -37,6 +38,9 @@ Secrets:
 | `R2_ACCESS_KEY_ID` | R2のAccess Key ID |
 | `R2_SECRET_ACCESS_KEY` | R2のSecret Access Key |
 | `SSH_PUBLIC_KEY` | インスタンスへ投入するOpenSSH公開鍵 |
+| `CLOUDFLARE_ZERO_TRUST_ORGANIZATION` | Cloudflare Zero Trustのteam name |
+| `CLOUDFLARE_ACCESS_CLIENT_ID` | ヘッドレス登録用Service TokenのClient ID |
+| `CLOUDFLARE_ACCESS_CLIENT_SECRET` | ヘッドレス登録用Service TokenのClient Secret |
 
 Variables:
 
@@ -118,6 +122,21 @@ ansible-inventory --graph
 ansible-playbook site.yml
 ```
 
+`site.yml`はCloudflare One Clientを導入し、上記3つの環境変数を使って各Linodeを
+Cloudflare Meshへ登録します。GitHub Actionsから手動で構成だけを再適用する場合は
+`Configure SimpleProxy nodes` workflowを実行してください。
+
+バックエンドはCIDR routeではなく、次のMesh IPへ直接接続します。
+
+| バックエンド | Mesh IP | 疎通確認ポート |
+| --- | --- | --- |
+| 旧 `10.0.0.108` | `172.31.240.1` | `30500` |
+| 旧 `10.0.0.110` | `172.31.240.4` | `30500` |
+
+これらのIP割り当てと、`172.31.240.0/24`をCloudflare One Clientへ通すSplit Tunnel設定は
+Cloudflare Zero Trust側で管理します。設定デプロイは全Linodeで`warp-cli status`が
+Connectedとなり、両バックエンドの30500番へ接続できる場合だけ続行します。
+
 `requirements.txt`はコントローラーのPythonに応じてAnsible Coreを選択します。
 Python 3.10ではCore 2.17、Python 3.11以上では互換性のある2.19または2.20が入ります。
 Core 2.17は既にEOLのため、可能になり次第コントローラーをPython 3.11以上へ更新してください。
@@ -149,9 +168,12 @@ workflowがself-hosted Linux runner上で起動します。runnerは次を実行
 
 1. `relay-server-config`を取得して指定SHAをcheckoutする。
 2. SHAが`generated`ブランチに含まれることと、生成ファイルが有効なYAMLであることを確認する。
-3. `ip-deny-list/generated/simpleproxy-config.yml`を全ノードの
+3. 旧`10.0.0.108`/`10.0.0.110`が残っておらず、Mesh IPが含まれることを確認する。
+4. `site.yml`を適用してCloudflare Mesh接続を構成する。
+5. 全ノードからMeshバックエンドへの疎通を確認する。
+6. `ip-deny-list/generated/simpleproxy-config.yml`を全ノードの
    `/opt/simpleproxy/config.yml`へ2台ずつ原子的に転送する。
-4. 変更されたノードだけSIGHUPでreloadし、25565番listenerを確認する。
+7. 変更されたノードだけSIGHUPでreloadし、25565番listenerを確認する。
 
 self-hosted runnerの実行ユーザーには、次の両方へのSSHアクセスが必要です。
 

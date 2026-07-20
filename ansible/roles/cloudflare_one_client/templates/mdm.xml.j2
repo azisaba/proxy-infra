@@ -1,0 +1,14 @@
+<dict>
+  <key>auth_client_id</key>
+  <string>{{ cloudflare_access_client_id | e }}</string>
+  <key>auth_client_secret</key>
+  <string>{{ cloudflare_access_client_secret | e }}</string>
+  <key>auto_connect</key>
+  <integer>1</integer>
+  <key>onboarding</key>
+  <false/>
+  <key>organization</key>
+  <string>{{ cloudflare_zero_trust_organization | e }}</string>
+  <key>service_mode</key>
+  <string>warp</string>
+</dict>

@@ -1,0 +1,86 @@
+---
+- name: Validate Cloudflare One enrollment settings
+  ansible.builtin.assert:
+    that:
+      - cloudflare_zero_trust_organization | length > 0
+      - cloudflare_access_client_id | length > 0
+      - cloudflare_access_client_secret | length > 0
+    fail_msg: >-
+      Set CLOUDFLARE_ZERO_TRUST_ORGANIZATION, CLOUDFLARE_ACCESS_CLIENT_ID,
+      and CLOUDFLARE_ACCESS_CLIENT_SECRET on the Ansible controller.
+  no_log: true
+
+- name: Validate the Cloudflare One Client operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == "Ubuntu"
+      - ansible_facts.distribution_major_version | int >= 22
+    fail_msg: "The Cloudflare One Client role supports Ubuntu 22.04 or newer."
+
+- name: Install Cloudflare repository prerequisites
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - apt-transport-https
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install the Cloudflare package signing key
+  ansible.builtin.get_url:
+    url: https://pkg.cloudflareclient.com/pubkey.gpg
+    dest: /usr/share/keyrings/cloudflare-warp-archive-keyring.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure the Cloudflare One Client repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.asc]
+      https://pkg.cloudflareclient.com/ {{ ansible_facts.distribution_release }} main
+    filename: cloudflare-client
+    state: present
+
+- name: Install the Cloudflare One Client
+  ansible.builtin.apt:
+    name: cloudflare-warp
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Deploy the headless Cloudflare One enrollment configuration
+  ansible.builtin.template:
+    src: mdm.xml.j2
+    dest: /var/lib/cloudflare-warp/mdm.xml
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Restart Cloudflare One Client
+
+- name: Apply Cloudflare One Client configuration changes
+  ansible.builtin.meta: flush_handlers
+
+- name: Request a Cloudflare One connection
+  ansible.builtin.command:
+    argv:
+      - warp-cli
+      - connect
+  changed_when: false
+  failed_when: false
+
+- name: Wait for the Cloudflare Mesh connection
+  ansible.builtin.command:
+    argv:
+      - warp-cli
+      - status
+  register: cloudflare_one_status
+  changed_when: false
+  retries: 12
+  delay: 5
+  until:
+    - cloudflare_one_status.rc == 0
+    - >-
+      cloudflare_one_status.stdout is
+      search('(?im)^Status update:\\s*Connected\\s*$')

@@ -33,11 +33,6 @@ env:
   TF_VAR_proxy_port: ${{ vars.PROXY_PORT || '25565' }}
   TF_VAR_ssh_allowed_ipv4: ${{ vars.SSH_ALLOWED_IPV4 }}
   TF_VAR_ssh_allowed_ipv6: ${{ vars.SSH_ALLOWED_IPV6 || '[]' }}
-  TF_VAR_proxy_allowed_ipv4: ${{ vars.PROXY_ALLOWED_IPV4 || '["0.0.0.0/0"]' }}
-  TF_VAR_proxy_allowed_ipv6: ${{ vars.PROXY_ALLOWED_IPV6 || '["::/0"]' }}
-  TF_VAR_enable_nodebalancer: ${{ vars.ENABLE_NODEBALANCER || 'false' }}
-  TF_VAR_nodebalancer_algorithm: ${{ vars.NODEBALANCER_ALGORITHM || 'leastconn' }}
-  TF_VAR_nodebalancer_proxy_protocol: ${{ vars.NODEBALANCER_PROXY_PROTOCOL || 'none' }}
   AWS_REGION: auto
   AWS_DEFAULT_REGION: auto
 

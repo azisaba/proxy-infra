@@ -117,6 +117,10 @@ ansible-inventory --graph
 ansible-playbook site.yml
 ```
 
+`requirements.txt`はコントローラーのPythonに応じてAnsible Coreを選択します。
+Python 3.10ではCore 2.17、Python 3.11以上では互換性のある2.19または2.20が入ります。
+Core 2.17は既にEOLのため、可能になり次第コントローラーをPython 3.11以上へ更新してください。
+
 初回はTerraformが投入したroot鍵で接続します。管理ユーザーを作る場合は、
 `group_vars/simpleproxy.yml`の`simpleproxy_admin_authorized_keys`へ公開鍵を設定し、
 `site.yml`を適用します。接続確認後に`ansible_user`を`proxyadmin`へ変更できます。

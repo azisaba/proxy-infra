@@ -18,7 +18,7 @@ Linode上のUbuntu 26.04 LTS SimpleProxyノードを、Terraform、Ansible、sys
   - 管理ユーザーとSSH公開鍵
   - graceful reload、2台ずつのrolling restart、OS更新
 
-AnsibleはSimpleProxy 1.1.6の公式JARをSHA-256検証付きで
+AnsibleはSimpleProxy 2.1.1の公式JARをSHA-256検証付きで
 `/opt/simpleproxy/SimpleProxy.jar`へ配置します。更新時は`group_vars/simpleproxy.yml`の
 URLとchecksumを必ず一緒に変更してください。
 
@@ -135,8 +135,9 @@ ansible-playbook site.yml
 ```
 
 `site.yml`はCloudflare One Clientを導入し、上記3つの環境変数を使って各Linodeを
-Cloudflare Meshへ登録します。GitHub Actionsから手動で構成だけを再適用する場合は
-`Configure SimpleProxy nodes` workflowを実行してください。
+Cloudflare Meshへ登録します。JARのURLまたはchecksumを含むSimpleProxyロールの変更が
+mainへpushされると、`Configure SimpleProxy nodes` workflowが2台ずつ自動適用します。
+手動で構成だけを再適用する場合も、同じworkflowを実行してください。
 
 バックエンドはCIDR routeではなく、次のMesh IPへ直接接続します。
 

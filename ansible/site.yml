@@ -3,6 +3,8 @@
   hosts: simpleproxy
   become: true
   gather_facts: true
+  serial: 2
+  max_fail_percentage: 0
   roles:
     - role: cloudflare_one_client
     - role: simpleproxy

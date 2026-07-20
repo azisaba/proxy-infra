@@ -6,7 +6,7 @@ variable "region" {
 variable "instance_count" {
   description = "Number of SimpleProxy instances."
   type        = number
-  default     = 2
+  default     = 3
 
   validation {
     condition     = var.instance_count >= 1 && var.instance_count <= 100 && floor(var.instance_count) == var.instance_count

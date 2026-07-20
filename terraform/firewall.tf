@@ -27,7 +27,8 @@ resource "linode_firewall" "proxy" {
   depends_on = [
     linode_firewall.nodebalancer,
     linode_nodebalancer_node.proxy,
-    linode_nodebalancer_node.proxy_additional,
+    linode_nodebalancer_node.proxy_25566,
+    linode_nodebalancer_node.proxy_25567,
   ]
 
   lifecycle {

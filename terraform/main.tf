@@ -1,21 +1,9 @@
 locals {
-  common_tags                   = ["simpleproxy", "terraform"]
-  nodebalancer_backend_ipv4     = ["192.168.255.0/24"]
-  nodebalancer_additional_ports = setsubtract(toset(["25566", "25567"]), toset([tostring(var.proxy_port)]))
-  nodebalancer_ports            = sort(distinct(concat([tostring(var.proxy_port)], tolist(local.nodebalancer_additional_ports))))
-  effective_proxy_allowed_ipv4  = var.enable_nodebalancer ? local.nodebalancer_backend_ipv4 : var.proxy_allowed_ipv4
-  effective_proxy_allowed_ipv6  = var.enable_nodebalancer ? [] : var.proxy_allowed_ipv6
-  nodebalancer_additional_node_pairs = {
-    for pair in flatten([
-      for port in local.nodebalancer_additional_ports : [
-        for instance_index in range(var.instance_count) : {
-          key            = "${port}-${instance_index}"
-          port           = port
-          instance_index = instance_index
-        }
-      ]
-    ]) : pair.key => pair
-  }
+  common_tags                  = ["simpleproxy", "terraform"]
+  nodebalancer_backend_ipv4    = ["192.168.255.0/24"]
+  nodebalancer_ports           = sort(distinct([tostring(var.proxy_port), "25566", "25567"]))
+  effective_proxy_allowed_ipv4 = var.enable_nodebalancer ? local.nodebalancer_backend_ipv4 : var.proxy_allowed_ipv4
+  effective_proxy_allowed_ipv6 = var.enable_nodebalancer ? [] : var.proxy_allowed_ipv6
 }
 
 resource "linode_sshkey" "admin" {

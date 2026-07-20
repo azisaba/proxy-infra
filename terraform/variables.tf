@@ -86,7 +86,7 @@ variable "proxy_allowed_ipv6" {
 variable "enable_nodebalancer" {
   description = "Create a regional TCP NodeBalancer in front of all proxy instances."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "nodebalancer_algorithm" {
@@ -103,7 +103,7 @@ variable "nodebalancer_algorithm" {
 variable "nodebalancer_proxy_protocol" {
   description = "Proxy Protocol version sent to SimpleProxy. Match this with config.yml."
   type        = string
-  default     = "none"
+  default     = "v2"
 
   validation {
     condition     = contains(["none", "v1", "v2"], var.nodebalancer_proxy_protocol)

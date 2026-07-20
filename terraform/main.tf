@@ -1,5 +1,8 @@
 locals {
-  common_tags = ["simpleproxy", "terraform"]
+  common_tags                  = ["simpleproxy", "terraform"]
+  nodebalancer_backend_ipv4    = ["192.168.255.0/24"]
+  effective_proxy_allowed_ipv4 = var.enable_nodebalancer ? local.nodebalancer_backend_ipv4 : var.proxy_allowed_ipv4
+  effective_proxy_allowed_ipv6 = var.enable_nodebalancer ? [] : var.proxy_allowed_ipv6
 }
 
 resource "linode_sshkey" "admin" {
@@ -27,4 +30,3 @@ resource "linode_instance" "proxy" {
     }
   }
 }
-

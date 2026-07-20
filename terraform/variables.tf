@@ -72,13 +72,13 @@ variable "proxy_port" {
 }
 
 variable "proxy_allowed_ipv4" {
-  description = "IPv4 CIDRs allowed to reach SimpleProxy. Include 192.168.128.0/17 when using a legacy private-IP NodeBalancer."
+  description = "Public IPv4 CIDRs allowed to reach SimpleProxy directly, or the NodeBalancer when enabled."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
 variable "proxy_allowed_ipv6" {
-  description = "IPv6 CIDRs allowed to reach SimpleProxy."
+  description = "Public IPv6 CIDRs allowed to reach SimpleProxy directly, or the NodeBalancer when enabled."
   type        = list(string)
   default     = ["::/0"]
 }
@@ -110,4 +110,3 @@ variable "nodebalancer_proxy_protocol" {
     error_message = "nodebalancer_proxy_protocol must be none, v1, or v2."
   }
 }
-

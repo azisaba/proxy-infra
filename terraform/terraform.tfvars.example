@@ -12,6 +12,8 @@ ssh_allowed_ipv4 = ["203.0.113.10/32"]
 ssh_allowed_ipv6 = []
 
 proxy_port         = 25565
+# Public clients allowed to reach either the instances directly or the
+# NodeBalancer frontend when enable_nodebalancer is true.
 proxy_allowed_ipv4 = ["0.0.0.0/0"]
 proxy_allowed_ipv6 = ["::/0"]
 

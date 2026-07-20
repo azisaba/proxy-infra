@@ -92,14 +92,24 @@ terraform init -backend=false
 terraform validate
 ```
 
-NodeBalancerを使う場合は`enable_nodebalancer = true`にし、backendへの通信を許可するため
-`proxy_allowed_ipv4`へLinodeのlegacy private IPv4範囲も追加します。
+NodeBalancerを使う場合は`enable_nodebalancer = true`にします。
+`proxy_allowed_ipv4`と`proxy_allowed_ipv6`はNodeBalancer公開入口へ接続できる利用者の
+CIDRとして、そのまま使用します。
 
 ```hcl
 enable_nodebalancer = true
-proxy_allowed_ipv4  = ["192.168.128.0/17"]
-proxy_allowed_ipv6  = []
+proxy_allowed_ipv4  = ["0.0.0.0/0"]
+proxy_allowed_ipv6  = ["::/0"]
 ```
+
+NodeBalancerを有効にすると、NodeBalancer専用Cloud Firewallを自動作成して上記CIDRから
+`proxy_port`への通信だけを許可します。同時に各SimpleProxyのCloud Firewallは
+`192.168.255.0/24`からのprivate IPv4通信だけを許可するルールへ切り替わるため、
+各インスタンスの公開IPを使ったNodeBalancerの迂回はできなくなります。
+
+NodeBalancerを無効に戻すと専用Firewallを削除し、各SimpleProxyのFirewallは再び
+`proxy_allowed_ipv4`と`proxy_allowed_ipv6`を直接使用します。SSHの許可範囲はどちらの
+場合も`ssh_allowed_ipv4`と`ssh_allowed_ipv6`のままです。
 
 `nodebalancer_proxy_protocol`を`v1`または`v2`にする場合は、`relay-server-config`側の
 SimpleProxy設定でもProxy Protocolを有効にしてください。

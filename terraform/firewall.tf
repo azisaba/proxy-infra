@@ -40,7 +40,7 @@ resource "linode_firewall" "proxy" {
 resource "linode_firewall" "nodebalancer" {
   count = var.enable_nodebalancer ? 1 : 0
 
-  label = "${var.name_prefix}-nodebalancer-firewall"
+  label = "${var.name_prefix}-nb-fw"
 
   inbound_policy  = "DROP"
   outbound_policy = "ACCEPT"

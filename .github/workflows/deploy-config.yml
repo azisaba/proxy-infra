@@ -10,6 +10,9 @@ on:
       - "ansible/roles/cloudflare_one_client/**"
       - ".github/workflows/deploy-config.yml"
   workflow_dispatch:
+  repository_dispatch:
+    types:
+      - relay-config-generated
 
 permissions:
   contents: read
@@ -36,6 +39,15 @@ jobs:
       - name: Check out proxy infrastructure
         uses: actions/checkout@v5
 
+      - name: Validate the generated configuration dispatch
+        if: github.event_name == 'repository_dispatch'
+        env:
+          GENERATED_SHA: ${{ github.event.client_payload.generated_sha }}
+          SOURCE_REPOSITORY: ${{ github.event.client_payload.source_repository }}
+        run: |
+          test "$SOURCE_REPOSITORY" = "azisaba/relay-server-config"
+          [[ "$GENERATED_SHA" =~ ^[0-9a-f]{40}$ ]]
+
       - name: Create the Ansible virtual environment
         run: python3 -m venv .venv
 
@@ -46,10 +58,26 @@ jobs:
         run: .venv/bin/ansible-galaxy collection install -r requirements.yml
 
       - name: Show the selected configuration commit
+        if: github.event_name != 'repository_dispatch'
         run: grep -n '^simpleproxy_config_commit:' group_vars/simpleproxy.yml
+
+      - name: Show the dispatched configuration commit
+        if: github.event_name == 'repository_dispatch'
+        env:
+          GENERATED_SHA: ${{ github.event.client_payload.generated_sha }}
+        run: echo "simpleproxy_config_commit=${GENERATED_SHA}"
 
       - name: Configure nodes and Cloudflare Mesh
         run: .venv/bin/ansible-playbook site.yml
 
       - name: Deploy the pinned configuration
+        if: github.event_name != 'repository_dispatch'
         run: .venv/bin/ansible-playbook deploy-config.yml
+
+      - name: Deploy the dispatched configuration
+        if: github.event_name == 'repository_dispatch'
+        env:
+          GENERATED_SHA: ${{ github.event.client_payload.generated_sha }}
+        run: >-
+          .venv/bin/ansible-playbook deploy-config.yml
+          --extra-vars "simpleproxy_config_commit=${GENERATED_SHA}"

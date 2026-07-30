@@ -179,6 +179,12 @@ simpleproxy_config_commit: "3db74db5587e7738ffe80acaa7dcae7c04451a30"
 このSHAを変更するPull Requestがmainへマージされると、`Deploy SimpleProxy config`
 workflowがself-hosted Linux runner上で起動します。runnerは次を実行します。
 
+`relay-server-config`の生成Workflowから`relay-config-generated` dispatchを受けた場合は、
+payloadの生成コミットSHAを同じ検証・配布処理へextra varとして渡します。dispatch元は
+`azisaba/relay-server-config`、SHAは小文字40文字でなければ拒否します。これにより固定SHAを
+書き換えずにWeb認証由来の例外を自動反映でき、固定SHAと手動Workflowはロールバック経路として
+残ります。
+
 1. `relay-server-config`を取得して指定SHAをcheckoutする。
 2. SHAが`generated`ブランチに含まれることと、生成ファイルが有効なYAMLであることを確認する。
 3. 旧`10.0.0.108`/`10.0.0.110`が残っておらず、Mesh IPが含まれることを確認する。
@@ -209,6 +215,10 @@ SimpleProxyノードへの接続には、runner実行ユーザーの次の秘密
 `Run workflow`を選びます。ロールバックは`simpleproxy_config_commit`を以前のSHAへ戻す
 Pull Requestをマージします。`production` Environmentにrequired reviewersがある場合は、
 自動起動後に承認されるまでデプロイは待機します。
+
+完全自動反映にする場合は、`production` EnvironmentをSecretの境界として維持したまま
+required reviewersを設定しません。`relay-server-config`側には、このリポジトリだけに
+Contents writeを持つFine-grained PATを`PROXY_INFRA_DISPATCH_TOKEN`として登録します。
 
 `update-os.yml`は2台ずつ更新し、必要な場合は再起動してからlistenerを確認します。
 

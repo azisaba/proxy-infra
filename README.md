@@ -50,6 +50,7 @@ Variables:
 | `R2_BUCKET_NAME` | `terraform-state` |
 | `LINODE_REGION` | `ap-northeast` |
 | `PROXY_PORT` | `25565` |
+| `VOICECHAT_PORT` | `24454` |
 | `SSH_ALLOWED_IPV4` | `["203.0.113.10/32"]` |
 | `SSH_ALLOWED_IPV6` | `[]` |
 | `PROXY_ALLOWED_IPV4` | `["0.0.0.0/0"]` |
@@ -112,6 +113,11 @@ NodeBalancerを有効にすると、NodeBalancer専用Cloud Firewallを自動作
 NodeBalancerを無効に戻すと専用Firewallを削除し、各SimpleProxyのFirewallは再び
 `proxy_allowed_ipv4`と`proxy_allowed_ipv6`を直接使用します。SSHの許可範囲はどちらの
 場合も`ssh_allowed_ipv4`と`ssh_allowed_ipv6`のままです。
+
+Simple Voice Chat用に、各SimpleProxyのCloud Firewallは`voicechat_port`（既定値24454）への
+UDP通信を`proxy_allowed_ipv4`と`proxy_allowed_ipv6`から常に直接許可します。NodeBalancerは
+UDPを転送しないため、NodeBalancerの有効・無効にかかわらず、Voice Chatのクライアントは
+各インスタンスの公開IPへ直接接続します。
 
 `nodebalancer_proxy_protocol`を`v1`または`v2`にする場合は、`relay-server-config`側の
 SimpleProxy設定でもProxy Protocolを有効にしてください。

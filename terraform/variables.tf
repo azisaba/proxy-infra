@@ -71,6 +71,17 @@ variable "proxy_port" {
   }
 }
 
+variable "voicechat_port" {
+  description = "UDP port for Simple Voice Chat, allowed directly on each instance from proxy_allowed_ipv4/ipv6."
+  type        = number
+  default     = 24454
+
+  validation {
+    condition     = var.voicechat_port >= 1 && var.voicechat_port <= 65535
+    error_message = "voicechat_port must be between 1 and 65535."
+  }
+}
+
 variable "proxy_allowed_ipv4" {
   description = "Public IPv4 CIDRs allowed to reach SimpleProxy directly, or the NodeBalancer when enabled."
   type        = list(string)

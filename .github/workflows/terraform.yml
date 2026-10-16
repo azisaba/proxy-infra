@@ -31,6 +31,7 @@ env:
   TF_INPUT: "false"
   TF_VAR_region: ${{ vars.LINODE_REGION }}
   TF_VAR_proxy_port: ${{ vars.PROXY_PORT || '25565' }}
+  TF_VAR_voicechat_port: ${{ vars.VOICECHAT_PORT || '24454' }}
   TF_VAR_ssh_allowed_ipv4: ${{ vars.SSH_ALLOWED_IPV4 }}
   TF_VAR_ssh_allowed_ipv6: ${{ vars.SSH_ALLOWED_IPV6 || '[]' }}
   AWS_REGION: auto

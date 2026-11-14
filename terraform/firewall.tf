@@ -22,8 +22,6 @@ resource "linode_firewall" "proxy" {
     ipv6     = length(local.effective_proxy_allowed_ipv6) > 0 ? local.effective_proxy_allowed_ipv6 : null
   }
 
-  # NodeBalancer does not forward UDP, so Simple Voice Chat is always reached
-  # directly on each instance's public address.
   inbound {
     label    = "allow-voicechat"
     action   = "ACCEPT"
@@ -63,6 +61,15 @@ resource "linode_firewall" "nodebalancer" {
     action   = "ACCEPT"
     protocol = "TCP"
     ports    = join(",", local.nodebalancer_ports)
+    ipv4     = length(var.proxy_allowed_ipv4) > 0 ? var.proxy_allowed_ipv4 : null
+    ipv6     = length(var.proxy_allowed_ipv6) > 0 ? var.proxy_allowed_ipv6 : null
+  }
+
+  inbound {
+    label    = "allow-voicechat"
+    action   = "ACCEPT"
+    protocol = "UDP"
+    ports    = tostring(var.voicechat_port)
     ipv4     = length(var.proxy_allowed_ipv4) > 0 ? var.proxy_allowed_ipv4 : null
     ipv6     = length(var.proxy_allowed_ipv6) > 0 ? var.proxy_allowed_ipv6 : null
   }
